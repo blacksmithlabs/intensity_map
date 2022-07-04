@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import "package:vector_math/vector_math.dart";
-import "dart:_internal" show SystemHash;
 
 class GeodeticCoordinate {
   final double latitude;
@@ -23,7 +22,12 @@ class GeodeticCoordinate {
   bool operator ==(dynamic other) => equals(other);
 
   @override
-  int get hashCode => SystemHash.hash2(latitude.hashCode, longitude.hashCode);
+  int get hashCode => Object.hashAll([latitude, longitude]);
+
+  @override
+  String toString() {
+    return 'geo($latitude, $longitude)';
+  }
 
   bool equals(dynamic other) =>
       other is GeodeticCoordinate &&
@@ -48,7 +52,7 @@ class SphericalCoordinate {
   bool operator ==(dynamic other) => equals(other);
 
   @override
-  int get hashCode => SystemHash.hash3(x.hashCode, y.hashCode, z.hashCode);
+  int get hashCode => Object.hashAll([x, y, z]);
 
   bool equals(dynamic other) =>
       other is SphericalCoordinate &&

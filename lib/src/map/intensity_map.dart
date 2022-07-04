@@ -13,6 +13,25 @@ class PointIntensity {
 
   PointIntensity scale(double factor) =>
       PointIntensity._raw(latitude, longitude, intensity * factor);
+
+  double normalizeIntensity() {
+    // Normal range is -1 to 1, make intensity bands
+    if (intensity > 0) {
+      // Anything greater than 1 is in the full sun
+      return 1;
+    } else if (intensity > -0.08) {
+      // Civil twilight
+      return 0.85;
+    } else if (intensity > -0.18) {
+      // Nautical twilight
+      return 0.75;
+    } else if (intensity > -0.32) {
+      // Astronomical twilight
+      return 0.65;
+    }
+    // Night
+    return 0.5;
+  }
 }
 
 class IntensityMap extends Iterable<PointIntensity> {
