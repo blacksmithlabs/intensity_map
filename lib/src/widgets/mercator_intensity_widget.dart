@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:flat_map/src/coordinate/coordinate.dart';
 import 'package:flat_map/src/map/intensity_map.dart';
 import 'package:flat_map/src/shapes/sun_painter.dart';
+import 'package:flat_map/src/widgets/scaled_layout_builder_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class MercatorIntensityWidget extends StatefulWidget {
   const MercatorIntensityWidget({Key? key}) : super(key: key);
@@ -14,21 +16,56 @@ class MercatorIntensityWidget extends StatefulWidget {
 }
 
 class _MercatorIntensityWidgetState extends State<MercatorIntensityWidget> {
+  final imagePath = 'assets/maps/mercator-projection.jpg';
+
+  double step = 1.0;
+  GeodeticCoordinate? sunCoord;
+  Size? imageSize;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        sunCoord = const GeodeticCoordinate(-22.52, 70.02);
+      });
+    });
+
+    _loadImageProperties();
+  }
+
+  void _loadImageProperties() async {
+    final image = await rootBundle.load(imagePath);
+    final decodedImage = await decodeImageFromList(image.buffer.asUint8List());
+    imageSize = Size(
+      decodedImage.width.toDouble(),
+      decodedImage.height.toDouble(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    const sunCoord = GeodeticCoordinate(22.88, 168.1);
-    const step = 1.0;
+    if (sunCoord == null || imageSize == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
-    return CustomPaint(
-      foregroundPainter: _IntensityPainter(IntensityMap(sunCoord, step)),
-      child: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/maps/mercator-projection.jpg'),
-            fit: BoxFit.fill,
+    return ScaledLayoutBuilder(
+      toScale: imageSize!,
+      builder: (context, constraints, size) {
+        return CustomPaint(
+          foregroundPainter: _IntensityPainter(IntensityMap(sunCoord!, step)),
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(imagePath),
+                fit: BoxFit.fill,
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -41,31 +78,32 @@ class _IntensityPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Calculate the lat/long to pixel conversion ratio
-    var dlat = size.height / 180.0; // -90 to 90
-    var dlong = size.width / 360.0; // -180 to 180
+    final dlat = size.height / 180.0; // -90 to 90
+    final dlong = size.width / 360.0; // -180 to 180
 
-    double latToY(double latitude) => size.height - ((latitude + 90.0) * dlat);
-    double longToX(double longitude) => (longitude + 180.0) * dlong;
+    Offset toOffset(double latitude, double longitude) {
+      return Offset(
+        (longitude + 180.0) * dlong,
+        (latitude + 90.0) * dlat,
+      );
+    }
 
-    var sunX = longToX(map.sunCoord.longitude);
-    var sunY = latToY(map.sunCoord.latitude);
-    SunPainter.paint(canvas, Offset(sunX, sunY));
+    SunPainter.paint(
+      canvas,
+      toOffset(map.sunCoord.latitude, map.sunCoord.longitude),
+    );
 
     // Paint the map
-    var radius = max(dlat, dlong);
+    final dr = max(dlat, dlong);
     // TODO can we convert this to a shape somehow?
     for (var pt in map) {
-      var x = longToX(pt.longitude);
-      var y = latToY(pt.latitude);
+      final offset = toOffset(pt.latitude, pt.longitude);
+      final intensity = 1 - max(0, pt.normalizeIntensity());
 
-      // var normalizedIntensity = (1 + (pt.intensity > 0 ? 1 : pt.intensity)) / 2;
-      // var intensity = 1 - max(0, (1 + pt.intensity) / 2);
-      var intensity = 1 - max(0, pt.normalizeIntensity());
-
-      var paint = Paint()
+      final paint = Paint()
         ..color = Colors.black.withAlpha((255 * intensity).ceil());
 
-      canvas.drawCircle(Offset(x + radius, y + radius), radius, paint);
+      canvas.drawCircle(offset, dr, paint);
     }
   }
 
