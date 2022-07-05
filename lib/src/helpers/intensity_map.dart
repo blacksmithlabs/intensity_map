@@ -1,4 +1,4 @@
-import 'package:flat_map/src/coordinate/coordinate.dart';
+import 'package:flat_map/src/helpers/coordinate.dart';
 
 class PointIntensity {
   final double latitude;
@@ -35,15 +35,14 @@ class PointIntensity {
 }
 
 class IntensityMap extends Iterable<PointIntensity> {
-  final GeodeticCoordinate sunCoord;
   final double step;
-  late List<PointIntensity> _intensityMap;
+  late final List<PointIntensity> _intensityMap;
 
-  IntensityMap(this.sunCoord, this.step) {
-    _intensityMap = _calcIntensityMap();
+  IntensityMap(GeodeticCoordinate sunCoord, this.step) {
+    _intensityMap = _calcIntensityMap(sunCoord);
   }
 
-  List<PointIntensity> _calcIntensityMap() {
+  List<PointIntensity> _calcIntensityMap(GeodeticCoordinate sunCoord) {
     var points = <PointIntensity>[];
 
     var minValue = 0.0;

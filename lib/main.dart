@@ -54,21 +54,21 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    // SystemChrome.setPreferredOrientations([
-    //   DeviceOrientation.landscapeLeft,
-    //   DeviceOrientation.landscapeRight,
-    // ]);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
   }
 
   @override
   void dispose() {
-    // SystemChrome.setPreferredOrientations([
-    //   DeviceOrientation.landscapeLeft,
-    //   DeviceOrientation.landscapeRight,
-    //   DeviceOrientation.portraitDown,
-    //   DeviceOrientation.portraitUp
-    // ]);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.portraitUp
+    ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     super.dispose();
   }
@@ -79,12 +79,15 @@ class _MyHomePageState extends State<MyHomePage> {
       // appBar: AppBar(
       //   title: Text(widget.title),
       // ),
-      body: Center(
-        child: Stack(
-          children: const <Widget>[
-            MercatorIntensityWidget(),
-            // AzimuthalIntensityWidget(),
-          ],
+      body: Container(
+        color: Colors.black,
+        child: Center(
+          child: Stack(
+            children: const <Widget>[
+              MercatorIntensityWidget(),
+              // AzimuthalIntensityWidget(),
+            ],
+          ),
         ),
       ),
     );
