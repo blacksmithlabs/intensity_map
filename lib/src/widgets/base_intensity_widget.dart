@@ -2,15 +2,14 @@ import 'dart:async';
 import 'dart:ui' as ui show Image;
 
 import 'package:flat_map/src/helpers/coordinate.dart';
+import 'package:flat_map/src/helpers/intensity_map.dart';
+import 'package:flat_map/src/helpers/intensity_path.dart';
+import 'package:flat_map/src/shapes/sun_painter.dart';
 import 'package:flat_map/src/widgets/scaled_layout_builder_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-typedef IntensityWidgetPainterBuilder = CustomPainter Function(
-  GeodeticCoordinate sunCoord,
-  GeodeticCoordinate moonCoord,
-  ui.Image moonImage,
-);
+typedef CoordinateCoverter = Offset Function(double latitude, double longitude);
 
 typedef CoordinateConverterBuilder
     = Offset Function(double latitude, double longitude) Function(
@@ -19,13 +18,11 @@ typedef CoordinateConverterBuilder
 
 class BaseIntensityWidget extends StatefulWidget {
   final String imagePath;
-  final IntensityWidgetPainterBuilder painterBuilder;
   final CoordinateConverterBuilder toOffsetBuilder;
 
   const BaseIntensityWidget({
     Key? key,
     required this.imagePath,
-    required this.painterBuilder,
     required this.toOffsetBuilder,
   }) : super(key: key);
 
@@ -121,10 +118,11 @@ class _BaseIntensityWidgetState extends State<BaseIntensityWidget> {
       toScale: mapSize!,
       builder: (context, constraints, size) {
         return CustomPaint(
-          foregroundPainter: widget.painterBuilder(
+          foregroundPainter: _IntensityPainter(
             sunCoord!,
             moonCoord!,
             moonImage!,
+            widget.toOffsetBuilder(size),
           ),
           child: Container(
             decoration: BoxDecoration(
@@ -137,5 +135,60 @@ class _BaseIntensityWidgetState extends State<BaseIntensityWidget> {
         );
       },
     );
+  }
+}
+
+class _IntensityPainter extends CustomPainter {
+  final GeodeticCoordinate sunCoord;
+  final GeodeticCoordinate moonCoord;
+  final ui.Image moonImage;
+  final CoordinateCoverter toOffset;
+
+  _IntensityPainter(
+      this.sunCoord, this.moonCoord, this.moonImage, this.toOffset);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final map = IntensityMap(sunCoord, 0.5, 0.5);
+    final paths = IntensityPath.getPaths(sunCoord, map);
+    for (var path in paths) {
+      if (path.intensity == LightIntensity.daylight) continue;
+
+      final startCoord = path.coordinates.first;
+      final startOffset = toOffset(
+        startCoord.latitude,
+        startCoord.longitude,
+      );
+      final uiPath = Path()..moveTo(startOffset.dx, startOffset.dy);
+      for (var coords in path.coordinates) {
+        final offset = toOffset(coords.latitude, coords.longitude);
+        uiPath.lineTo(offset.dx, offset.dy);
+      }
+
+      canvas.drawPath(
+        uiPath,
+        Paint()..color = Colors.black.withAlpha(path.intensity.toAlpha()),
+      );
+    }
+
+    // Draw sun
+    SunPainter.paint(
+      canvas,
+      toOffset(sunCoord.latitude, sunCoord.longitude),
+    );
+
+    // Draw moon
+    canvas.drawImage(
+      moonImage,
+      toOffset(moonCoord.latitude, moonCoord.longitude),
+      Paint(),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_IntensityPainter old) {
+    return sunCoord != old.sunCoord ||
+        moonCoord != old.moonCoord ||
+        toOffset != old.toOffset;
   }
 }

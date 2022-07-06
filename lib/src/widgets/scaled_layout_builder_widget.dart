@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 typedef ScaledLayoutWidgetBuilder = Widget Function(
@@ -16,11 +18,10 @@ class ScaledLayoutBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final scale = (constraints.maxHeight < constraints.maxWidth)
-          // Scale to height
-          ? constraints.maxHeight / toScale.height
-          // Scale to width
-          : constraints.maxWidth / toScale.width;
+      final scale = min(
+        constraints.maxHeight / toScale.height,
+        constraints.maxWidth / toScale.width,
+      );
 
       final scaled = toScale * scale;
 
