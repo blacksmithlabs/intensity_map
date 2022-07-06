@@ -82,7 +82,6 @@ class IntensityMap extends Iterable<PointIntensity> {
   late final List<PointIntensity> _intensityMap;
 
   Map<LightIntensity, Map<double, List<double>>>? _normalizedMap;
-  Map<LightIntensity, Map<double, List<double>>>? _minMaxMap;
 
   IntensityMap(
     GeodeticCoordinate sunCoord,
@@ -144,35 +143,6 @@ class IntensityMap extends Iterable<PointIntensity> {
     }
 
     return _normalizedMap!;
-  }
-
-  Map<LightIntensity, Map<double, List<double>>> minMaxMap() {
-    if (_minMaxMap != null) {
-      return _minMaxMap!;
-    }
-
-    final intensityByLongitude = normalizedMap();
-
-    _minMaxMap = <LightIntensity, Map<double, List<double>>>{};
-
-    // For each longitude find the min/max latitude
-    for (var intensityEntry in intensityByLongitude.entries) {
-      final intensity = intensityEntry.key;
-      final longitudeValues = _minMaxMap!
-          .putIfAbsent(intensity, () => SplayTreeMap<double, List<double>>());
-
-      for (var longitudeEntry in intensityEntry.value.entries) {
-        final longitude = longitudeEntry.key;
-        final minLatitude = longitudeEntry.value.reduce(min);
-        final maxLatitude = longitudeEntry.value.reduce(max);
-
-        final latitudes =
-            longitudeValues.putIfAbsent(longitude, () => <double>[]);
-        latitudes.addAll([minLatitude, maxLatitude]);
-      }
-    }
-
-    return _minMaxMap!;
   }
 
   @override

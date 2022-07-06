@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui show Image;
 
+import 'package:flat_map/src/helpers/astronomy.dart';
 import 'package:flat_map/src/helpers/coordinate.dart';
 import 'package:flat_map/src/helpers/intensity_map.dart';
 import 'package:flat_map/src/helpers/intensity_path.dart';
@@ -57,32 +58,19 @@ class _BaseIntensityWidgetState extends State<BaseIntensityWidget> {
   }
 
   void _loadSunMoonCoords() async {
+    // final now = DateTime.now();
+    final now = DateTime.utc(2004, 1, 1);
     setState(() {
-      sunCoord = const GeodeticCoordinate(22.44, -114.32);
-      // sunCoord = const GeodeticCoordinate(0, 50);
-      moonCoord = const GeodeticCoordinate(4.3, -38.98);
+      sunCoord = getSubSolarPoint(now);
+      moonCoord = getSubLunarPoint(now);
     });
 
-    updateTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) {
-      if (sunCoord != null) {
-        if (sunCoord!.latitude <= -23.5) {
-          latitudeDelta = 0.5;
-        } else if (sunCoord!.latitude >= 23.5) {
-          latitudeDelta = -0.5;
-        }
-
-        var nextLongitude = sunCoord!.longitude + 1;
-        if (nextLongitude >= 180) {
-          nextLongitude = -180;
-        }
-
-        setState(() {
-          sunCoord = GeodeticCoordinate(
-            sunCoord!.latitude + latitudeDelta,
-            nextLongitude,
-          );
-        });
-      }
+    updateTimer = Timer.periodic(const Duration(minutes: 4), (timer) {
+      final time = DateTime.now();
+      setState(() {
+        sunCoord = getSubSolarPoint(time);
+        moonCoord = getSubLunarPoint(time);
+      });
     });
   }
 
