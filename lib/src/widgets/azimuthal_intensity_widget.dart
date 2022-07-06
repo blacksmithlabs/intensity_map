@@ -3,6 +3,7 @@ import 'dart:ui' as ui show Image;
 
 import 'package:flat_map/src/helpers/coordinate.dart';
 import 'package:flat_map/src/helpers/intensity_map.dart';
+import 'package:flat_map/src/helpers/intensity_path.dart';
 import 'package:flat_map/src/shapes/sun_painter.dart';
 import 'package:flat_map/src/widgets/base_intensity_widget.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
@@ -29,9 +30,22 @@ class AzimuthalIntensityWidget extends StatelessWidget {
           step,
         );
       },
+      toOffsetBuilder: (size) {
+        final center = Offset(size.width, size.height) / 2;
+        final dlat = size.height / 180.0 / 2; // -90 to 90, use as radius
+
+        return (latitude, longitude) {
+          final long = radians(-longitude + 90);
+          final lat = (-latitude + 90) * dlat;
+
+          return center + Offset(cos(long) * lat, sin(long) * lat);
+        };
+      },
     );
   }
 }
+
+// TODO convert to a standardized base painter
 
 class _IntensityPainter extends CustomPainter {
   final GeodeticCoordinate sunCoord;
@@ -43,28 +57,40 @@ class _IntensityPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final map = IntensityMap(sunCoord, step);
+    // Calculate the lat/long to pixel conversion ratio
+    final dlat = size.height / 180.0 / 2; // -90 to 90, use as radius
+
+    final map = IntensityMap(sunCoord, 0.5, 0.5);
 
     final center = Offset(size.width, size.height) / 2;
 
     Offset toOffset(double latitude, double longitude) {
-      final long = radians(longitude - 45);
-      final lat = (latitude + 90);
+      final dlat = size.height / 180.0 / 2; // -90 to 90, use as radius
+      final long = radians(-longitude + 90);
+      final lat = (-latitude + 90) * dlat;
 
       return center + Offset(cos(long) * lat, sin(long) * lat);
     }
 
-    // Paint the map
-    // TODO can we convert this to a shape somehow?
-    for (var pt in map) {
-      final offset = toOffset(pt.latitude, pt.longitude);
-      final intensity = 1 - max(0, pt.normalizeIntensity());
+    final paths = IntensityPath.getPaths(sunCoord, map);
+    for (var path in paths) {
+      if (path.intensity == LightIntensity.daylight) continue;
 
-      final paint = Paint()
-        ..color = Colors.black.withAlpha((255 * intensity).ceil());
+      final startCoord = path.coordinates.first;
+      final startOffset = toOffset(
+        startCoord.latitude,
+        startCoord.longitude,
+      );
+      final uiPath = Path()..moveTo(startOffset.dx, startOffset.dy);
+      for (var coords in path.coordinates) {
+        final offset = toOffset(coords.latitude, coords.longitude);
+        uiPath.lineTo(offset.dx, offset.dy);
+      }
 
-      final spacing = pi * (pt.latitude + 90) / 270;
-      canvas.drawCircle(offset, spacing, paint);
+      canvas.drawPath(
+        uiPath,
+        Paint()..color = Colors.black.withAlpha(path.intensity.toAlpha()),
+      );
     }
 
     // Draw sun

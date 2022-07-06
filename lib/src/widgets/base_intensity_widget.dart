@@ -12,14 +12,21 @@ typedef IntensityWidgetPainterBuilder = CustomPainter Function(
   ui.Image moonImage,
 );
 
+typedef CoordinateConverterBuilder
+    = Offset Function(double latitude, double longitude) Function(
+  Size canvasSize,
+);
+
 class BaseIntensityWidget extends StatefulWidget {
   final String imagePath;
   final IntensityWidgetPainterBuilder painterBuilder;
+  final CoordinateConverterBuilder toOffsetBuilder;
 
   const BaseIntensityWidget({
     Key? key,
     required this.imagePath,
     required this.painterBuilder,
+    required this.toOffsetBuilder,
   }) : super(key: key);
 
   @override
@@ -54,11 +61,12 @@ class _BaseIntensityWidgetState extends State<BaseIntensityWidget> {
 
   void _loadSunMoonCoords() async {
     setState(() {
-      sunCoord = const GeodeticCoordinate(-22.52, 70.02);
-      moonCoord = const GeodeticCoordinate(-12.27, 129.77);
+      sunCoord = const GeodeticCoordinate(22.44, -114.32);
+      // sunCoord = const GeodeticCoordinate(0, 50);
+      moonCoord = const GeodeticCoordinate(4.3, -38.98);
     });
 
-    updateTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    updateTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) {
       if (sunCoord != null) {
         if (sunCoord!.latitude <= -23.5) {
           latitudeDelta = 0.5;
@@ -83,13 +91,19 @@ class _BaseIntensityWidgetState extends State<BaseIntensityWidget> {
 
   void _loadMoonImage() async {
     final imageData = await rootBundle.load(moonImagePath);
-    moonImage = await decodeImageFromList(imageData.buffer.asUint8List());
+    final data = await decodeImageFromList(imageData.buffer.asUint8List());
+    setState(() {
+      moonImage = data;
+    });
   }
 
   void _loadMapImage() async {
     final imageData = await rootBundle.load(widget.imagePath);
     final mapImage = await decodeImageFromList(imageData.buffer.asUint8List());
-    mapSize = Size(mapImage.width.toDouble(), mapImage.height.toDouble());
+    final data = Size(mapImage.width.toDouble(), mapImage.height.toDouble());
+    setState(() {
+      mapSize = data;
+    });
   }
 
   @override

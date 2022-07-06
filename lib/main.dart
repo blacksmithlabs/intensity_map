@@ -84,8 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Center(
           child: Stack(
             children: const <Widget>[
-              MercatorIntensityWidget(),
-              // AzimuthalIntensityWidget(),
+              // MercatorIntensityWidget(),
+              AzimuthalIntensityWidget(),
             ],
           ),
         ),
