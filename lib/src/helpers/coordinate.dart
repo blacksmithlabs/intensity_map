@@ -54,6 +54,11 @@ class SphericalCoordinate {
   @override
   int get hashCode => Object.hashAll([x, y, z]);
 
+  @override
+  String toString() {
+    return 'geo($x, $y, $z)';
+  }
+
   bool equals(dynamic other) =>
       other is SphericalCoordinate &&
       other.x == x &&

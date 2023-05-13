@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flat_map/src/widgets/base_intensity_widget.dart';
+import 'package:flat_map/src/widgets/cpu_maps/base_intensity_widget.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:flutter/material.dart';
 

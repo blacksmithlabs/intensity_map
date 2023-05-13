@@ -1,4 +1,4 @@
-import 'package:flat_map/src/widgets/base_intensity_widget.dart';
+import 'package:flat_map/src/widgets/cpu_maps/base_intensity_widget.dart';
 import 'package:flutter/material.dart';
 
 class MercatorIntensityWidget extends StatelessWidget {

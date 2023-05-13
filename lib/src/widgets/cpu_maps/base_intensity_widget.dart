@@ -65,12 +65,32 @@ class _BaseIntensityWidgetState extends State<BaseIntensityWidget> {
       moonCoord = getSubLunarPoint(now);
     });
 
-    updateTimer = Timer.periodic(const Duration(minutes: 4), (timer) {
-      final time = DateTime.now();
-      setState(() {
-        sunCoord = getSubSolarPoint(time);
-        moonCoord = getSubLunarPoint(time);
-      });
+    // updateTimer = Timer.periodic(const Duration(minutes: 4), (timer) {
+    //   final time = DateTime.now();
+    //   setState(() {
+    //     sunCoord = getSubSolarPoint(time);
+    //     moonCoord = getSubLunarPoint(time);
+    //   });
+    updateTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (sunCoord != null) {
+        if (sunCoord!.latitude <= -23.5) {
+          latitudeDelta = 0.5;
+        } else if (sunCoord!.latitude >= 23.5) {
+          latitudeDelta = -0.5;
+        }
+
+        var nextLongitude = sunCoord!.longitude + 1;
+        if (nextLongitude >= 180) {
+          nextLongitude = -180;
+        }
+
+        setState(() {
+          sunCoord = GeodeticCoordinate(
+            sunCoord!.latitude + latitudeDelta,
+            nextLongitude,
+          );
+        });
+      }
     });
   }
 

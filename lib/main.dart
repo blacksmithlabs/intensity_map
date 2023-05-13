@@ -1,5 +1,6 @@
-import 'package:flat_map/src/widgets/azimuthal_intensity_widget.dart';
-import 'package:flat_map/src/widgets/mercator_intensity_widget.dart';
+import 'package:flat_map/src/widgets/cpu_maps/azimuthal_intensity_widget.dart';
+import 'package:flat_map/src/widgets/cpu_maps/mercator_intensity_widget.dart';
+import 'package:flat_map/src/widgets/shader_maps/mercator_shader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -58,11 +59,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: Container(
         color: Colors.black,
-        child: Center(
+        child: const Center(
           child: Stack(
-            children: const <Widget>[
-              MercatorIntensityWidget(),
+            children: <Widget>[
+              // MercatorIntensityWidget(),
               // AzimuthalIntensityWidget(),
+              MercatorShaderWidget(),
             ],
           ),
         ),
