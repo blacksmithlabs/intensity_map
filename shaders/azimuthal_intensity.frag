@@ -15,7 +15,7 @@ out vec4 fragColor;
 
 void main() {
   vec2 center = resolution / 2.0;
-  float dlat = center.y / 180.0; // -90 to 90 for radius, use as radians
+  float dlat = 180.0 / center.y; // -90 to 90 for radius, use as radians
 
   vec2 coords = FlutterFragCoord().xy;
 
@@ -26,15 +26,28 @@ void main() {
     return;
   }
 
+  vec2 test = center;
+  float tr = distance(center, test);
+  float lat = tr - 90.0;
+  float lon = degrees(acos(radians(test.x) / tr));
+
+  if (lat == -90.0 && lon == 0) {
+    fragColor = vec4(1.0);
+    return;
+  }
+
   // Distance from center to current coord is latitude
   // Scale distance to our coordinate system
   // Map so it is -90..90 instead of 0..180
   // This is off for some reason?
-  float lat = dr * dlat - 90.0;
-  if (lat > 90) {
-    fragColor = vec4(0.5);
-    return;
-  }
+  // float lat = dr * dlat - 90.0;
+  // x = cos(lon) * lat
+  // lon = acos(x/lat)
+  // float lon = acos(coords.x / dr);
+  // if (lon > 0) {
+  //   fragColor = vec4(1.0, 0.0, 0, 0.5);
+  //   return;
+  // }
 
   vec2 range = vec2(TOA, -PI);
   vec2 hrange = range / 2.0;
