@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flat_map/src/helpers/astronomy.dart';
 import 'package:flat_map/src/helpers/coordinate.dart';
 import 'package:flat_map/src/shapes/sun_painter.dart';
 import 'package:flat_map/src/widgets/scaled_layout_builder_widget.dart';
@@ -20,14 +21,14 @@ class BaseShaderWidget extends StatefulWidget {
   final String imagePath;
   final String shaderAsset;
   final CoordinateConverterBuilder toOffsetBuilder;
-  final int refreshMs;
+  final Duration? updateDuration;
 
   const BaseShaderWidget({
     super.key,
     required this.imagePath,
     required this.shaderAsset,
     required this.toOffsetBuilder,
-    this.refreshMs = 50,
+    this.updateDuration = const Duration(seconds: 15),
   });
 
   @override
@@ -55,33 +56,38 @@ class _BaseShaderWidgetState extends State<BaseShaderWidget> {
   }
 
   void _loadSunCoords() async {
+    final now = DateTime.now();
     setState(() {
-      sunCoord = const GeodeticCoordinate(22.44, -114.32);
+      sunCoord = getSubSolarPoint(now);
     });
 
-    if (widget.refreshMs > 0) {
+    if (widget.updateDuration != null) {
       updateTimer = Timer.periodic(
-        Duration(milliseconds: widget.refreshMs),
+        widget.updateDuration!,
         (timer) {
-          if (sunCoord != null) {
-            if (sunCoord!.latitude <= -23.5) {
-              latitudeDelta = 0.5;
-            } else if (sunCoord!.latitude >= 23.5) {
-              latitudeDelta = -0.5;
-            }
+          final time = DateTime.now();
+          setState(() {
+            sunCoord = getSubSolarPoint(time);
+          });
+          // if (sunCoord != null) {
+          //   if (sunCoord!.latitude <= -23.5) {
+          //     latitudeDelta = 0.5;
+          //   } else if (sunCoord!.latitude >= 23.5) {
+          //     latitudeDelta = -0.5;
+          //   }
 
-            var nextLongitude = sunCoord!.longitude + 1;
-            if (nextLongitude >= 180) {
-              nextLongitude = -180;
-            }
+          //   var nextLongitude = sunCoord!.longitude + 1;
+          //   if (nextLongitude >= 180) {
+          //     nextLongitude = -180;
+          //   }
 
-            setState(() {
-              sunCoord = GeodeticCoordinate(
-                sunCoord!.latitude + latitudeDelta,
-                nextLongitude,
-              );
-            });
-          }
+          //   setState(() {
+          //     sunCoord = GeodeticCoordinate(
+          //       sunCoord!.latitude + latitudeDelta,
+          //       nextLongitude,
+          //     );
+          //   });
+          // }
         },
       );
     }

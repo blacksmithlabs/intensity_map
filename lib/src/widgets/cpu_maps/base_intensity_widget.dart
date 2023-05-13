@@ -58,40 +58,44 @@ class _BaseIntensityWidgetState extends State<BaseIntensityWidget> {
   }
 
   void _loadSunMoonCoords() async {
-    // final now = DateTime.now();
-    final now = DateTime.utc(2004, 1, 1);
+    final now = DateTime.now();
+    // final now = DateTime.utc(2004, 1, 1);
     setState(() {
       sunCoord = getSubSolarPoint(now);
       moonCoord = getSubLunarPoint(now);
     });
 
-    // updateTimer = Timer.periodic(const Duration(minutes: 4), (timer) {
-    //   final time = DateTime.now();
-    //   setState(() {
-    //     sunCoord = getSubSolarPoint(time);
-    //     moonCoord = getSubLunarPoint(time);
-    //   });
-    updateTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (sunCoord != null) {
-        if (sunCoord!.latitude <= -23.5) {
-          latitudeDelta = 0.5;
-        } else if (sunCoord!.latitude >= 23.5) {
-          latitudeDelta = -0.5;
-        }
-
-        var nextLongitude = sunCoord!.longitude + 1;
-        if (nextLongitude >= 180) {
-          nextLongitude = -180;
-        }
-
+    updateTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (timer) {
+        final time = DateTime.now();
         setState(() {
-          sunCoord = GeodeticCoordinate(
-            sunCoord!.latitude + latitudeDelta,
-            nextLongitude,
-          );
+          sunCoord = getSubSolarPoint(time);
+          moonCoord = getSubLunarPoint(time);
         });
-      }
-    });
+      },
+    );
+    // updateTimer = Timer.periodic(const Duration(milliseconds: 5), (timer) {
+    //   if (sunCoord != null) {
+    //     if (sunCoord!.latitude <= -23.5) {
+    //       latitudeDelta = 0.5;
+    //     } else if (sunCoord!.latitude >= 23.5) {
+    //       latitudeDelta = -0.5;
+    //     }
+
+    //     var nextLongitude = sunCoord!.longitude + 1;
+    //     if (nextLongitude >= 180) {
+    //       nextLongitude = -180;
+    //     }
+
+    //     setState(() {
+    //       sunCoord = GeodeticCoordinate(
+    //         sunCoord!.latitude + latitudeDelta,
+    //         nextLongitude,
+    //       );
+    //     });
+    //   }
+    // });
   }
 
   void _loadMoonImage() async {
