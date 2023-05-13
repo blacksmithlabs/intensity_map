@@ -60,7 +60,8 @@ flutter:
     - assets/maps/
 
   shaders:
-    - shaders/intensity.frag
+    - shaders/mercator_intensity.frag
+    - shaders/azimuthal_intensity.frag
 
   # To add assets to your application, add an assets section, like this:
   # assets:
