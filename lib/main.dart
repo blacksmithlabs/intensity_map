@@ -1,5 +1,6 @@
 import 'package:flat_map/src/widgets/cpu_maps/azimuthal_intensity_widget.dart';
 import 'package:flat_map/src/widgets/cpu_maps/mercator_intensity_widget.dart';
+import 'package:flat_map/src/widgets/shader_maps/azimuthal_shader_widget.dart';
 import 'package:flat_map/src/widgets/shader_maps/mercator_shader_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,7 +65,8 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               // MercatorIntensityWidget(),
               // AzimuthalIntensityWidget(),
-              MercatorShaderWidget(),
+              // MercatorShaderWidget(),
+              AzimuthalShaderWidget(),
             ],
           ),
         ),
